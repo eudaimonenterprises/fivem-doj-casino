@@ -1,6 +1,5 @@
 Config = {}
 Config.Locale = 'en'
-QBCore = exports['qb-core']:GetCoreObject()
 
 -- YOUR MAIN SETUPS
 Config.Debug = false -- enable debug messages in sv/cl console

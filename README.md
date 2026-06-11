@@ -7,16 +7,11 @@
 
 **[ox_inventory](https://github.com/overextended/ox_inventory)**
 
-**[envi-interact](https://github.com/Envi-Scripts/envi-interact)** 
-
-**[casinoUi](https://github.com/dojwun/casinoUi)**
-
 # About
-- Mostly converted to qbx / ox
-> Still using a few qb-core callbacks (removing)
+- Entirely converted to qbx / ox
+- Evni-interact depenendancy removed
 
 - New casino interactions
-> envi-interact
 > 
 - Lots of configs/additions to casino-walls
 > secret gumball item
@@ -34,44 +29,44 @@
 ![casino_vip](https://i.imgur.com/nBvSini.png)
 
 
-# qbx_core/shared/items.lua info 
+# ox_inventory/data/items.lua info 
 ```
-	['casino_gumball']  = {
-		['name'] = 'casino_gumball',
-		['label'] = 'Gumball',
-		['weight'] = 100,
-		['type'] = 'item',
-		['image'] = 'casino_gumball.png',
-		['unique'] = false, 	
-		['useable'] = true,
-		['shouldClose'] = true,
-		['combinable'] = nil,  
-		['description'] = 'A shiny gumball'
-	},
-	['casino_member']  = {
-		['name'] = 'casino_member',
-		['label'] = 'Casino Member', 
-		['weight'] = 0, 	
-		['type'] = 'item', 	
-		['image'] = 'casino_member.png', 	
-		['unique'] = false, 	
-		['useable'] = false, 
-		['shouldClose'] = false, 
-		['combinable'] = nil,  
-		['description'] = 'Casino Membership'
-	},
-	['casino_vip']  = {
-		['name'] = 'casino_vip',
-		['label'] = 'Casino V.I.P', 
-		['weight'] = 0, 	
-		['type'] = 'item', 	
-		['image'] = 'casino_vip.png', 	
-		['unique'] = false, 	
-		['useable'] = false, 
-		['shouldClose'] = false, 
-		['combinable'] = nil,  
-		['description'] = 'V.I.P Membership'
-	},
+['casino_gumball'] = {
+    label = 'Gumball',
+    weight = 100,
+    stack = true,
+    close = true,
+    description = 'A shiny gumball'
+},
+['casino_member'] = {
+    label = 'Casino Membership Card',
+    weight = 0,
+    stack = false,
+    close = false,
+    description = 'Grants standard gaming floor floor privileges at the Diamond Casino.'
+},
+['casino_vip'] = {
+    label = 'Casino V.I.P High-Roller Card',
+    weight = 0,
+    stack = false,
+    close = false,
+    description = 'Grants premium V.I.P high-roller suite privileges at the Diamond Casino.'
+},
+['casinochips'] = {
+    label = 'Casino Chips',
+    weight = 0,
+    stack = true,
+    close = false,
+    description = 'Used to place bets at the Diamond Casino gaming tables.'
+}
+
+```
+
+Rename the fivem-doj-casino folder to *[fivem-doj-casino]*
+
+# server.cfg info
+```
+ensure [fivem-doj-casino]
 ```
 
 

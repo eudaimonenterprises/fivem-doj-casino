@@ -1,7 +1,3 @@
-local QBCore = exports['qb-core']:GetCoreObject()
-
--- ===========================================
-
 ranks = {'02', '03', '04', '05', '06', '07', '08', '09', '10', --[['11',]] 'JACK', 'QUEEN', 'KING', 'ACE'}
 suits = {'SPD', 'HRT', 'DIA', 'CLUB'}
 
@@ -159,24 +155,15 @@ RegisterServerEvent("BLACKJACK:SetPlayerBet")
 AddEventHandler('BLACKJACK:SetPlayerBet', SetPlayerBet)
 
 function CheckPlayerBet(i, bet)
-	local Player = exports.qbx_core:GetPlayer(source)
-	local ItemList = {
-		["casinochips"] = 1,
-	}
-	local playerChips = Player.Functions.GetItemByName("casinochips")
-	local canBet = false
-    if Player.PlayerData.items ~= nil and next(Player.PlayerData.items) ~= nil then
-        for k, v in pairs(Player.PlayerData.items) do
-            if Player.PlayerData.items[k] ~= nil then
-				if ItemList[Player.PlayerData.items[k].name] ~= nil then
-					if playerChips.amount >= bet then
-						canBet = true
-					end
-                end
-            end
-        end
-	end
-	TriggerClientEvent("BLACKJACK:BetReceived", source, canBet)
+    -- Target the inventory item count directly via your server's native exports
+    local chipCount = exports.ox_inventory:GetItemCount(source, "casinochips")
+    local canBet = false
+
+    if chipCount >= tonumber(bet) then
+        canBet = true
+    end
+
+    TriggerClientEvent("BLACKJACK:BetReceived", source, canBet)
 end
 
 RegisterServerEvent("BLACKJACK:CheckPlayerBet")

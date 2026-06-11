@@ -3,8 +3,6 @@
 --------------------------------------------
 --If you're snooping here, before you ask why some function names are horrible things like func_368, its so I could keep track of where I was at in the decompiled scripts :P
 
-local QBCore = exports['qb-core']:GetCoreObject()
-
 local closeToCasino = false 
 local closestChair = -1
 local closestChairDist = 1000 

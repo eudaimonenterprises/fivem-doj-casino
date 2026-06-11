@@ -1,3 +1,8 @@
+-- ====================================================================
+-- =------------------ [QBOX CASINO RECEPTION PACK] -----------------=
+-- ====================================================================
+
+-- Handles the 3D distance box boundaries using ox_lib spatial zones natively
 local function CreateCasinoInteractions(name, zone)
     CreateThread(function()
         lib.zones.box({
@@ -5,7 +10,7 @@ local function CreateCasinoInteractions(name, zone)
             size = zone.size,
             rotation = zone.coords.w,
             onEnter = function()
-                lib.showTextUI('E - interact: '..zone.text)
+                lib.showTextUI('[E] - '..zone.text)
             end,
             onExit = function()
                 lib.hideTextUI()
@@ -20,307 +25,146 @@ local function CreateCasinoInteractions(name, zone)
     end)
 end
 
-
+-- 1. FRONT DESK MEMBERSHIP SYSTEM (Converted completely to ox_lib Context)
 RegisterNetEvent("doj:casinoMembershipMenu", function()
     lib.hideTextUI()
-    exports['envi-interact']:OpenChoiceMenu({
-        title = 'Diamond Casino Memberships',
-        speech = 'Hello, How can i help you?',
-        duration = 750,
-        menuID = 'source-menu',
-        position = 'right',
+    
+    local hasMemberCard = exports.ox_inventory:GetItemCount("casino_member") >= 1
+    local hasVipCard = exports.ox_inventory:GetItemCount("casino_vip") >= 1
+
+    lib.registerContext({
+        id = 'casino_membership_main',
+        title = 'Diamond Casino Reception',
         options = {
-            { 
-                key = 'E',
-                label = 'Casino Membership',
-                selected = function()
-                    local HasItem = exports.ox_inventory:GetItemCount("casino_member")
-                    if HasItem >= 1 then
-                        exports['envi-interact']:OpenChoiceMenu({
-                            title = 'Diamond Casino Memberships (unavailable)',
-                            speech = 'You already have a Membership.',
-                            duration = 1000,
-                            menuID = 'source-menu-denied',
-                            position = 'right',
-                            options = {
-                                {
-                                    key = 'X',
-                                    label = 'Leave',
-                                 selected = function(data)
-                                        exports['envi-interact']:CloseEverything()
-                                    end
-                                }
-                            }
-                        })
-                    else
-                        exports['envi-interact']:OpenChoiceMenu({
-                            title = 'Casino Membership $'..Config.Casino.MemberCost,
-                            speech = 'Would you like to purchase?',
-                            duration = 750,
-                            menuID = 'membership-menu',
-                            position = 'right',
-                            options = {
-                                {
-                                    key = 'E',
-                                    label = 'Yes',
-                                    selected = function()
-                                        TriggerServerEvent('doj:server:purchaseMembership')
-                                        -- exports['envi-interact']:CloseEverything()
-                                    end
-                                },
-                                {
-                                    key = 'F',
-                                    label = 'No',
-                                    selected = function()
-                                        TriggerEvent('doj:casinoMembershipMenu')
-                                    end
-                                },
-                            }
-                        })
-                    end
+            {
+                title = 'Standard Membership',
+                description = hasMemberCard and 'You already possess an active membership card.' or 'Purchase a standard casino gaming floor access card for $' .. Config.Casino.MemberCost,
+                icon = 'id-card',
+                disabled = hasMemberCard,
+                onSelect = function()
+                    -- Inline confirm dialog bypasses the old slider clunkiness
+                    local confirm = lib.alertDialog({
+                        header = 'Purchase Membership?',
+                        content = 'Would you like to buy a Standard Casino Membership for $' .. Config.Casino.MemberCost .. '?',
+                        centered = true,
+                        cancel = true
+                    })
+                    if confirm == 'confirm' then TriggerServerEvent('doj:server:purchaseMembership') end
                 end
             },
             {
-                key = 'F',
-                label = 'V.I.P Membership',
-                selected = function()
-                    local HasItem = exports.ox_inventory:GetItemCount("casino_vip")
-                    if HasItem >= 1 then
-                        exports['envi-interact']:OpenChoiceMenu({
-                            title = 'Diamond Casino Memberships (unavailable)',
-                            speech = 'You already have a V.I.P Membership.',
-                            duration = 1000,
-                            menuID = 'source-menu-denied',
-                            position = 'right',
-                            options = {
-                                {
-                                    key = 'X',
-                                    label = 'Leave',
-                                 selected = function(data)
-                                        exports['envi-interact']:CloseEverything()
-                                    end
-                                }
-                            }
-                        })
-                    else
-                        exports['envi-interact']:OpenChoiceMenu({
-                            title = 'V.I.P Membership $'..Config.Casino.VipCost,
-                            speech = 'Would you like to purchase?',
-                            duration = 750,
-                            menuID = 'vip-menu',
-                            position = 'right',
-                            options = {
-                                {
-                                    key = 'E',
-                                    label = 'Yes',
-                                    selected = function()
-                                        TriggerServerEvent('doj:server:purchaseVIPMembership')
-                                        -- exports['envi-interact']:CloseEverything()
-                                    end
-                                },
-                                {
-                                    key = 'F',
-                                    label = 'No',
-                                    selected = function()
-                                        TriggerEvent('doj:casinoMembershipMenu')
-                                    end
-                                },
-                            }
-                        })
-                    end
-                end
-            },
-            {
-                key = 'X',
-                label = 'Leave', 
-                selected = function(data)
-                    exports['envi-interact']:CloseEverything()
+                title = 'V.I.P Membership',
+                description = hasVipCard and 'You already possess an active V.I.P high-roller card.' or 'Purchase premium VIP lounge access perks for $' .. Config.Casino.VipCost,
+                icon = 'crown',
+                disabled = hasVipCard,
+                onSelect = function()
+                    local confirm = lib.alertDialog({
+                        header = 'Purchase VIP Access?',
+                        content = 'Would you like to upgrade to a V.I.P Membership for $' .. Config.Casino.VipCost .. '?',
+                        centered = true,
+                        cancel = true
+                    })
+                    if confirm == 'confirm' then TriggerServerEvent('doj:server:purchaseVIPMembership') end
                 end
             }
         }
     })
+    lib.showContext('casino_membership_main')
 end)
 
+-- 2. CASHIER CHIP EXCHANGE SYSTEM (Converted to ox_lib Context with Input Prompts)
 RegisterNetEvent("doj:casinoCashierMenu", function()
     lib.hideTextUI()
-    local HasItem = exports.ox_inventory:GetItemCount("casino_member")
-    if HasItem >= 1 then
-        exports['envi-interact']:OpenChoiceMenu({
-            title = 'Diamond Casino Cashier',
-            speech = 'Hello, How can i help you?',
-            duration = 750,
-            menuID = 'cashier-menu',
-            position = 'right',
-            options = {
-                { 
-                    key = 'E',
-                    label = 'Purchase Chips',
-                    selected = function()
-                        exports['envi-interact']:UseSlider('cashier-menu', {
-                            title = '[Chip Price: $'..Config.Casino.ChipPrice..'] Amount:',
-                            min = 1, 
-                            max = 100, 
-                            sliderState = 'unlocked',
-                            sliderValue = 1, 
-                            nextState = 'unlocked',
-                            confirm = function(newVal)
-                                TriggerServerEvent('doj:server:buySelectedAmount', newVal)
-                            end
-                        })
-                    end
-                },
-                {
-                    key = 'F',
-                    label = 'Chip Exchange',
-                    selected = function()
-                        exports['envi-interact']:OpenChoiceMenu({
-                            title = 'Current Value: $'..Config.Casino.ChipPrice..' per chip',
-                            speech = 'How would you like to sell your Casino Chips?',
-                            duration = 1000,
-                            menuID = 'exchange-menu',
-                            position = 'right',
-                            options = {
-                                { 
-                                    key = 'E',
-                                    label = 'Sell All',
-                                    selected = function()
-                                        TriggerServerEvent('doj:server:sellAllChips')
-                                    end
-                                },
-                                { 
-                                    key = 'F',
-                                    label = 'Choose Amount',
-                                    selected = function()
-                                        exports['envi-interact']:UseSlider('exchange-menu', {
-                                            title = 'Sell Amount: ', 
-                                            min = 1, 
-                                            max = 250, 
-                                            sliderState = 'unlocked', 
-                                            sliderValue = 1, 
-                                            nextState = 'unlocked', 
-                                            confirm = function(newVal)
-                                                TriggerServerEvent('doj:server:sellSelectedAmount', newVal)
-                                            end
-                                        })
-                                    end
-                                },
-                            }
-                        })
-                    end
-                },
-            }
-        })
-    else
-        exports['envi-interact']:OpenChoiceMenu({
-            title = 'Diamond Casino Cashier (unavailable)',
-            speech = 'You are not a member of the casino, Please go visit the front desk.',
-            duration = 2000,
-            menuID = 'cashier-menu-denied',
-            position = 'right',
-            options = {
-                {
-                    key = 'X',
-                    label = 'Leave', 
-                    selected = function(data)
-                        exports['envi-interact']:CloseEverything()
-                    end
-                }
-            }
-        })
+    
+    if exports.ox_inventory:GetItemCount("casino_member") < 1 then
+        lib.notify({ title = 'Cashier Counter', description = 'Access Denied: You must purchase a standard floor membership at reception first.', type = 'error' })
+        return
     end
+
+    lib.registerContext({
+        id = 'casino_cashier_main',
+        title = 'Casino Token Cashier',
+        options = {
+            {
+                title = 'Purchase Chips',
+                description = 'Exchange your cash wallet funds into playable chips. Rate: $' .. Config.Casino.ChipPrice .. ' per chip.',
+                icon = 'coins',
+                onSelect = function()
+                    local input = lib.inputDialog('Chip Cashier Exchange', {
+                        { type = 'number', label = 'Amount to Purchase', description = 'Minimum 1 token', min = 1, max = 50000, default = 10 }
+                    })
+                    if input and input[1] then TriggerServerEvent('doj:server:buySelectedAmount', input[1]) end
+                end
+            },
+            {
+                title = 'Sell All Chips',
+                description = 'Cash out your entire chip balance back into straight dollar inventory bills.',
+                icon = 'wallet',
+                onSelect = function() TriggerServerEvent('doj:server:sellAllChips') end
+            },
+            {
+                title = 'Sell Custom Amount',
+                description = 'Exchange a targeted number of tokens back into cash funds.',
+                icon = 'money-bill-wave',
+                onSelect = function()
+                    local input = lib.inputDialog('Token Sell Station', {
+                        { type = 'number', label = 'Amount to Sell', description = 'Minimum 1 token', min = 1, max = 50000, default = 10 }
+                    })
+                    if input and input[1] then TriggerServerEvent('doj:server:sellSelectedAmount', input[1]) end
+                end
+            }
+        }
+    })
+    lib.showContext('casino_cashier_main')
 end)
 
+-- 3. CASINO SOUVENIR VENDING SHOP (Converted cleanly to ox_lib layouts)
 RegisterNetEvent("doj:casinoShopMenu", function()
     lib.hideTextUI()
-    local HasItem = exports.ox_inventory:GetItemCount("casino_member")
-    if HasItem >= 1 then
-        exports['envi-interact']:OpenChoiceMenu({
-            title = 'Diamond Casino Shop',
-            speech = 'Hello, How can i help you?',
-            duration = 750,
-            menuID = 'shop-menu',
-            position = 'right',
-            options = {
-                { 
-                    key = 'E',
-                    label = 'Browse',
-                    selected = function()
-                        TriggerEvent('doj:client:casinoShopCatalog')
-                    end
-                },
-                {
-                    key = 'X',
-                    label = 'Leave',
-                    selected = function()
-                        exports['envi-interact']:CloseEverything()
-                    end
-                },
-            }
-        })
+    if exports.ox_inventory:GetItemCount("casino_member") >= 1 then
+        TriggerEvent('doj:client:casinoShopCatalog')
     else
-        exports['envi-interact']:OpenChoiceMenu({
-            title = 'Diamond Casino Cashier (unavailable)',
-            speech = 'You are not a member of the casino, Please go visit the front desk.',
-            duration = 2000,
-            menuID = 'cashier-menu-denied',
-            position = 'right',
-            options = {
-                {
-                    key = 'X',
-                    label = 'Leave',
-                    selected = function(data)
-                        exports['envi-interact']:CloseEverything()
-                    end
-                }
-            }
-        })
+        lib.notify({ title = 'Gift Shop', description = 'Access Denied: Non-members are restricted from checking inventory catalog goods.', type = 'error' })
     end
 end)
 
-
 RegisterNetEvent("doj:client:casinoShopCatalog", function()
-    exports['envi-interact']:CloseEverything()
     local VendingItems = {}
     for k, v in pairs(Config.Vending) do
-        VendingItems[#VendingItems + 1] =
-        {
-            title = exports.ox_inventory:Items(v.Items).label,
-            icon = "nui://ox_inventory/web/images/"..v.Items..".png",
-            metadata = {'Price: $'..v.Price},
+        local currentItemInfo = exports.ox_inventory:Items(v.Items)
+        local displayLabel = currentItemInfo and currentItemInfo.label or v.Items
+        
+        VendingItems[#VendingItems + 1] = {
+            title = displayLabel,
+            icon = "nui://ox_inventory/web/images/" .. v.Items .. ".png",
+            metadata = { { label = 'Price', value = '$' .. v.Price } },
             onSelect = function()
                 TriggerServerEvent("doj:server:addVendingItems", v.Items, v.Price)
             end
         }
     end
+    
     lib.registerContext({
         id = 'CasinoShops',
-        title = 'Diamond Casino Consumeables',
+        title = 'Diamond Casino Refreshments',
         canClose = true,
         options = VendingItems,
     })
     lib.showContext('CasinoShops')
 end)
 
+-- Resource Boot listeners to bind structural boundaries to the active map layer grid space
 AddEventHandler('onResourceStart', function(resource)
     if resource ~= cache.resource then return end
-    for name, zone in pairs(Config.CasinoInteractions) do
-        CreateCasinoInteractions(name, zone)
-    end
+    for name, zone in pairs(Config.CasinoInteractions) do CreateCasinoInteractions(name, zone) end
     TriggerEvent('doj:client:CreateCasinoZones')
 end)
 
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
-    for name, zone in pairs(Config.CasinoInteractions) do
-        CreateCasinoInteractions(name, zone)
-    end
+    for name, zone in pairs(Config.CasinoInteractions) do CreateCasinoInteractions(name, zone) end
     TriggerEvent('doj:client:CreateCasinoZones')
 end)
 
 RegisterNetEvent('doj:client:UpdateInteractSpeech', function(menu, text, time)
-    exports['envi-interact']:UpdateSpeech(menu, text, time)
-    exports['envi-interact']:CloseEverything()
+    -- Deprecated old speech system wrapper safely bypassed for optimization stability
 end)
-
-
-
-

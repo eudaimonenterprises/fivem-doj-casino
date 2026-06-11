@@ -1,5 +1,3 @@
-QBCore = exports['qb-core']:GetCoreObject()
-
 SharedPokers = {}
 closeToPokers = false
 
@@ -402,68 +400,51 @@ AquiverPoker = function(index, data)
     self.sitDown = function(chairId, chairCoords, chairRotation)
         local HasItem = exports.ox_inventory:GetItemCount("casino_member")
         if HasItem >= 1 then
-
             StartAudioScene('DLC_VW_Casino_Table_Games')
-
             if not IsEntityDead(cache.ped) then
-                QBCore.Functions.TriggerCallback(
-                    'aquiverPoker:sitDown', 
-                    function(canSit)
-                        if canSit then
-                            activeChairData = {
-                                chairId = chairId,
-                                chairCoords = chairCoords,
-                                chairRotation = chairRotation
-                            }
-    
-                            lib.hideTextUI()
-    
-    
-                            if GetEntityModel(cache.ped) == GetHashKey('mp_m_freemode_01') then
-                                local rspeech = math.random(1, 2)
-                                if rspeech == 1 then
-                                    self.speakPed('MINIGAME_DEALER_GREET')
-                                else
-                                    self.speakPed('MINIGAME_DEALER_GREET_MALE')
-                                end
-                            else
-                                local rspeech = math.random(1, 2)
-                                if rspeech == 1 then
-                                    self.speakPed('MINIGAME_DEALER_GREET')
-                                else
-                                    self.speakPed('MINIGAME_DEALER_GREET_FEMALE')
-                                end
-                            end
-    
-                            buttonScaleform = setupFirstButtons('instructional_buttons')
-    
-                            RequestAnimDict(Config.PlayerAnimDictShared)
-                            while not HasAnimDictLoaded(Config.PlayerAnimDictShared) do
-                                Citizen.Wait(1)
-                            end
-                            SetPlayerControl(cache.ped, 0, 0)
-                            local sitScene = NetworkCreateSynchronisedScene(chairCoords, chairRotation, 2, true, false, 1.0, 0.0, 1.0)
-                            local sitAnim = ({'sit_enter_left_side', 'sit_enter_right_side'})[math.random(1, 2)]
-                            NetworkAddPedToSynchronisedScene(cache.ped, sitScene, Config.PlayerAnimDictShared, sitAnim, 2.0, -2.0, 13, 16, 2.0, 0)
-                            NetworkStartSynchronisedScene(sitScene)
-    
-                            Citizen.Wait(4000)
-                            mainScene = NetworkCreateSynchronisedScene(chairCoords, chairRotation, 2, true, false, 1.0, 0.0, 1.0)
-                            NetworkAddPedToSynchronisedScene(cache.ped, mainScene, Config.PlayerAnimDictShared, 'idle_cardgames', 2.0, -2.0, 13, 16, 1000.0, 0)
-                            NetworkStartSynchronisedScene(mainScene)
-    
-                            self.EnableRender(true)
-                            SetPlayerControl(cache.ped, 1, 0)
-                            lib.showTextUI("Place Bet: ↵  \n  Adjust Bet: ↑/↓  \n  Exit: ←")
-    
-                            Citizen.Wait(500)
+                -- FIX: Converted legacy QB callback to native ox_lib callback layout
+                lib.callback('aquiverPoker:sitDown', false, function(canSit)
+                    if canSit then
+                        activeChairData = {
+                            chairId = chairId,
+                            chairCoords = chairCoords,
+                            chairRotation = chairRotation
+                        }
+                        lib.hideTextUI()
+                        
+                        if GetEntityModel(cache.ped) == GetHashKey('mp_m_freemode_01') then
+                            local rspeech = math.random(1, 2)
+                            if rspeech == 1 then self.speakPed('MINIGAME_DEALER_GREET') else self.speakPed('MINIGAME_DEALER_GREET_MALE') end
                         else
-                            QBCore.Functions.Notify('This seat is occupied.')
+                            local rspeech = math.random(1, 2)
+                            if rspeech == 1 then self.speakPed('MINIGAME_DEALER_GREET') else self.speakPed('MINIGAME_DEALER_GREET_FEMALE') end
                         end
-                    end,
-                    self.index,
-                    chairId
-                )
+                        
+                        buttonScaleform = setupFirstButtons('instructional_buttons')
+                        
+                        RequestAnimDict(Config.PlayerAnimDictShared)
+                        while not HasAnimDictLoaded(Config.PlayerAnimDictShared) do Citizen.Wait(1) end
+                        SetPlayerControl(cache.ped, 0, 0)
+                        
+                        local sitScene = NetworkCreateSynchronisedScene(chairCoords, chairRotation, 2, true, false, 1.0, 0.0, 1.0)
+                        local sitAnim = ({'sit_enter_left_side', 'sit_enter_right_side'})[math.random(1, 2)]
+                        NetworkAddPedToSynchronisedScene(cache.ped, sitScene, Config.PlayerAnimDictShared, sitAnim, 2.0, -2.0, 13, 16, 2.0, 0)
+                        NetworkStartSynchronisedScene(sitScene)
+                        
+                        Citizen.Wait(4000)
+                        mainScene = NetworkCreateSynchronisedScene(chairCoords, chairRotation, 2, true, false, 1.0, 0.0, 1.0)
+                        NetworkAddPedToSynchronisedScene(cache.ped, mainScene, Config.PlayerAnimDictShared, 'idle_cardgames', 2.0, -2.0, 13, 16, 1000.0, 0)
+                        NetworkStartSynchronisedScene(mainScene)
+                        
+                        self.EnableRender(true)
+                        SetPlayerControl(cache.ped, 1, 0)
+                        lib.showTextUI("Place Bet: ↵ \n Adjust Bet: ↑/↓ \n Exit: ←")
+                        Citizen.Wait(500)
+                    else
+                        -- FIX: Swapped legacy QB notification with native overextended notification
+                        lib.notify({ title = 'Poker Table', description = 'This seat is currently occupied.', type = 'error' })
+                    end
+                end, self.index, chairId)
             end
         else
             lib.notify({title = 'You are not a member of the casino!', type = 'warning'})
@@ -648,24 +629,22 @@ AquiverPoker = function(index, data)
 
         if self.index == activePokerTable and playerBetted ~= nil then
             clientTimer = Config.PlayerDecideTime
-            Citizen.CreateThread(
-                function()
-                    while clientTimer ~= nil do
-                        Citizen.Wait(1000)
-                        if clientTimer ~= nil then
-                            clientTimer = clientTimer - 1
-
-                            if clientTimer < 1 then
-                                clientTimer = nil
-                                QBCore.Functions.Notify('You did not respond for the dealer ask in time, you have folded your hand.')
-                                TriggerServerEvent('aquiverPoker:foldCards', self.index)
-                            end
+            Citizen.CreateThread(function()
+                while clientTimer ~= nil do
+                    Citizen.Wait(1000)
+                    if clientTimer ~= nil then
+                        clientTimer = clientTimer - 1
+                        if clientTimer < 1 then
+                            clientTimer = nil
+                            -- FIX: Replaced obsolete QB notification call
+                            lib.notify({ title = 'Poker Table', description = 'You did not respond in time, your hand was folded.', type = 'warning' })
+                            TriggerServerEvent('aquiverPoker:foldCards', self.index)
                         end
                     end
                 end
-            )
+            end)
         end
-
+        
         RequestAnimDict(Config.PlayerAnimDictPoker)
         while not HasAnimDictLoaded(Config.PlayerAnimDictPoker) do
             Citizen.Wait(1)
@@ -936,7 +915,7 @@ AquiverPoker = function(index, data)
                         EnableControlAction(0, 249, true)
                         
                         -- if player betted then
-                        if playerBetted and QBCore then
+                        if playerBetted then
                             local reactiveText = ''
 
                             if currentHelpText then
@@ -1010,7 +989,8 @@ AquiverPoker = function(index, data)
                                             PlaySoundFrontend(-1, 'DLC_VW_ERROR_MAX', 'dlc_vw_table_games_frontend_sounds', true)
                                         end
                                     else
-                                        QBCore.Functions.Notify("You did not set up a bet value.")
+                                        -- FIX: Swapped legacy QB error popup for an optimized native notification
+                                        lib.notify({ title = 'Invalid Bet', description = 'You must establish a bet value before playing.', type = 'error' })
                                     end
                                 end
 
@@ -1070,8 +1050,8 @@ AquiverPoker = function(index, data)
             )
         else
             exports['casino-ui']:HideCasinoUi('hide')
-            exports["qb-core"]:HideText()
-
+            -- FIX: Swapped out legacy qb-core hide text with native ox_lib frame clearing
+            lib.hideTextUI()
 
             self.speakPed('MINIGAME_DEALER_LEAVE_NEUTRAL_GAME')
             local sitExitScene = NetworkCreateSynchronisedScene(activeChairData.chairCoords, activeChairData.chairRotation, 2, true, false, 1.0, 0.0, 1.0)
@@ -1513,9 +1493,6 @@ Citizen.CreateThread(function()
 end)
 
 Citizen.CreateThread(function()
-    while QBCore == nil do
-        Citizen.Wait(1)
-    end
     while not closeToPokers do
         Citizen.Wait(500)
     end
@@ -1534,7 +1511,7 @@ Citizen.CreateThread(function()
     while true do
         local sleep = 5
         local inZone = false
-        if QBCore and not InformationPlaying and activePokerTable == nil and activeChairData == nil then
+        if not InformationPlaying and activePokerTable == nil and activeChairData == nil then
                 local playerpos = GetEntityCoords(cache.ped)
                 for k, v in pairs(SharedPokers) do
                     local dist = #(playerpos - v.data.Position)
@@ -1546,7 +1523,7 @@ Citizen.CreateThread(function()
                                     local chaircoords = GetWorldPositionOfEntityBone(tableObj, GetEntityBoneIndexByName(tableObj, chairBone))
                                     if chaircoords then
                                         if #(playerpos - chaircoords) < 1.5 then
-                                            wait = 5
+                                            sleep = 5
                                             inZone  = true
                                             text = "Poker  \n  E - Sit"
 
@@ -2093,3 +2070,13 @@ end
         end
     end
 )--]]
+
+exports.ox_target:addModel({ `vw_prop_casino_3cardpoker_01a`, `vw_prop_casino_3cardpoker_01b` }, {
+    {
+        name = 'casino_poker_table_trigger',
+        event = 'aquiverPoker:client:sitDownRequest', -- Hooks right into your cleaned-up client file
+        icon = 'fas fa-spade',
+        label = 'Play Three-Card Poker',
+        distance = 2.0
+    }
+})

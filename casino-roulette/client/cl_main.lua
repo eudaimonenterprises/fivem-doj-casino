@@ -1,6 +1,3 @@
-
-local QBCore = exports['qb-core']:GetCoreObject()
-
 SITTING_SCENE = nil
 CURRENT_CHAIR_DATA = nil
 SELECTED_CHAIR_ID = nil
@@ -51,7 +48,7 @@ lastAimedBet = -1
 --  			SetEntityAsMissionEntity(table, 1, 1)
 --  			DeleteObject(table)
 --  			SetEntityAsNoLongerNeeded(table)
---              QBCore.Functions.Notify('Remove: '..table,'success')
+--              lib.notify({ title = 'Table Cleaner', description = 'Remove: '..table, type = 'success' })
 --            else
 --         end
 --     end)
@@ -853,20 +850,21 @@ CreateThread(
 --                     if dist < 2.4 then
 --                         if dist < 2.3 then 
 --                             -- exports['textUi']:DrawTextUi('show',"Diamond Casino Roulette</p>Press [E] to sit down")
---                             exports["qb-core"]:DrawText("<strong>The Diamond Casino & Resort</p>Roulette</strong></p>Press <strong>E</strong> to sit") 
+--                             lib.showTextUI("Roulette \n E - Sit")
 --                             local closestChairData = getClosestChairData(v.tableObject)
 
 --                             if closestChairData == nil then
 --                                 break
 --                             end
 --                             if IsControlJustPressed(0, 38) then
---                                 -- QBCore.Functions.TriggerCallback('doj:server:HasCasinoMembership', function(HasItem)
---                                 --     if HasItem then 
---                                         TriggerServerEvent('server_remote:rulett:taskSitDown', k, closestChairData)
---                                 -- 	else
--- 							    --         QBCore.Functions.Notify('You are not a member of the casino', 'error', 3500)
--- 						        --     end
--- 					            -- end)
+--                                 -- FIX: Replaced obsolete TriggerCallback loops with an instantaneous ox_inventory item validation query
+--                                 local hasMembership = exports.ox_inventory:GetItemCount("casino_member") >= 1
+--                                 if hasMembership then 
+--                                      TriggerServerEvent('server_remote:rulett:taskSitDown', k, closestChairData)
+--                                 else
+--                                      -- FIX: Replaced core notification string with native library alerts
+-- 							            lib.notify({ title = 'Roulette Table', description = 'You are not a member of the casino!', type = 'error' })
+-- 						           end
 --                             end 
 --                             break
 --                         end
@@ -930,7 +928,7 @@ end)
 
 RegisterNetEvent('client_callback:rulett:taskSitDown',function(rulettIndex, chairData)
     -- exports['progressBars']:drawBar(4000, 'Sitting...')
-    -- QBCore.Functions.Notify("Sitting...", "primary", 3200)  
+    -- lib.notify({ title = 'Roulette Table', description = 'Sitting down...', type = 'inform' })
     lib.hideTextUI()
     SELECTED_CHAIR_ID = chairData.chairId
     CURRENT_CHAIR_DATA = chairData

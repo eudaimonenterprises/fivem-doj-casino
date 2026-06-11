@@ -41,7 +41,7 @@ RegisterNetEvent('server_remote:rulett:taskSitDown',function(rulettIndex, chairD
 
     if aktivRulettek[rulettIndex] ~= nil then
         if aktivRulettek[rulettIndex].chairsUsed[chairId] ~= nil then
-            return TriggerClientEvent('QBCore:Notify', source, 'This chair is occupied.','error')
+            return TriggerClientEvent('ox_lib:Notify', source, 'This chair is occupied.','error')
         else
             TriggerClientEvent('client_callback:rulett:taskSitDown', source, rulettIndex, chairData)
         end
@@ -66,7 +66,7 @@ RegisterNetEvent('casino:taskStartRoulette',function(rulettIndex, chairId)
         aktivRulettek[rulettIndex].chairsUsed[chairId] = source
         TriggerClientEvent('client:casino:openRulett', source, rulettIndex)
     else
-        TriggerClientEvent('QBCore:Notify', source, 'This chair is occupied.','error')
+        TriggerClientEvent('ox_lib:Notify', source, 'This chair is occupied.','error')
     end
 end)
 
@@ -227,7 +227,7 @@ function CheckWinners(bets, WinningBetIndex)
         local chairId = getPlayerTableSeat(targetSrc)
         if chairId ~= nil then
             TriggerClientEvent('client:rulett:playLossAnim', targetSrc, chairId)
-            TriggerClientEvent('QBCore:Notify', targetSrc, 'You Lost... Better luck next time', "error")
+            TriggerClientEvent('ox_lib:Notify', targetSrc, 'You Lost... Better luck next time', "error")
         end
     end
 
@@ -250,13 +250,13 @@ RegisterNetEvent('casino:taskBetRulett',function(rulettIndex, betId, betAmount)
     local src = source
     if aktivRulettek[rulettIndex] ~= nil then
         if aktivRulettek[rulettIndex].statusz then
-            return TriggerClientEvent('QBCore:Notify', src, 'The game started, you can not bet at the moment.', "error")
+            return TriggerClientEvent('ox_lib:Notify', src, 'The game started, you can not bet at the moment.', "error")
         end
         local chipsAmount = getPlayerChips(src)
         if chipsAmount ~= nil then
             if chipsAmount >= betAmount then 
                 removeChips(src, betAmount)
-                -- TriggerClientEvent('QBCore:Notify', src, betAmount..' chips bet on ['..betId..']')
+                -- TriggerClientEvent('ox_lib:Notify', src, betAmount..' chips bet on ['..betId..']')
                 Config.DebugMsg(string.format('player %s betted %s chips on betId: %s', GetPlayerName(src), betAmount, betId))
                 local exist = false
                 for i = 1, #aktivRulettek[rulettIndex].bets, 1 do
@@ -283,13 +283,13 @@ RegisterNetEvent('casino:taskBetRulett',function(rulettIndex, betId, betAmount)
                     TriggerClientEvent('client:rulett:playBetAnim', src, chairId)
                 end
             else
-                TriggerClientEvent('QBCore:Notify', src, 'You do not have enough Casino chips to place bet.', "error")
+                TriggerClientEvent('ox_lib:Notify', src, 'You do not have enough Casino chips to place bet.', "error")
             end
         else
-            TriggerClientEvent('QBCore:Notify', src, 'You dont have any caino chips', 'error')
+            TriggerClientEvent('ox_lib:Notify', src, 'You dont have any caino chips', 'error')
         end
     else 
-        TriggerClientEvent('QBCore:Notify', src, 'error', 'An error occurred on a non-existent roulette table server side?')
+        TriggerClientEvent('ox_lib:Notify', src, 'error', 'An error occurred on a non-existent roulette table server side?')
     end
 end)
 

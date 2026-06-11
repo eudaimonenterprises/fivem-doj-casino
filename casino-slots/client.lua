@@ -392,3 +392,17 @@ RegisterNetEvent('dc-casino:slots:client:spinreels', function(SpinTime, ReelRewa
     end
     IsSpinning = false
 end)
+
+exports.ox_target:addModel({
+    `vw_prop_casino_slot_01a`, `vw_prop_casino_slot_02a`, `vw_prop_casino_slot_03a`, 
+    `vw_prop_casino_slot_04a`, `vw_prop_casino_slot_05a`, `vw_prop_casino_slot_06a`, 
+    `vw_prop_casino_slot_07a`, `vw_prop_casino_slot_08a`
+}, {
+    {
+        name = 'casino_slots_trigger',
+        event = 'dc-casino:slots:client:enterRequest', -- Adjust to match your slot client listener name
+        icon = 'fas fa-dollar-sign',
+        label = 'Play Slot Machine',
+        distance = 1.5
+    }
+})

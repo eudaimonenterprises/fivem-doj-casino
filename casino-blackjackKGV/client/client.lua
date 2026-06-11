@@ -1053,7 +1053,7 @@ exports("SetCanSitDownCallback", SetCanSitDownCallback)
 
 
 exports["casino-blackjackKGV"]:SetSatDownCallback(function()
-	exports["qb-core"]:HideText()
+	lib.hideTextUI()
 end)
 
 exports["casino-blackjackKGV"]:SetStandUpCallback(function()
@@ -1075,3 +1075,13 @@ end)
 -- 		return false 
 -- 	end
 -- end)
+
+exports.ox_target:addModel({ `vw_prop_casino_blckjk_01a`, `vw_prop_casino_blckjk_01b` }, {
+    {
+        name = 'casino_blackjack_table_trigger',
+        event = 'Blackjack:requestSitAtBlackjackTable', -- Fires the native seating network trigger
+        icon = 'fas fa-heart',
+        label = 'Play Blackjack',
+        distance = 2.0
+    }
+})

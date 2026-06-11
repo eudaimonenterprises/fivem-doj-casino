@@ -1,6 +1,3 @@
-QBCore = exports['qb-core']:GetCoreObject()
-
-
 local function getPlayerChips(source)
     local Player = exports.qbx_core:GetPlayer(source)
     if Player then
@@ -61,7 +58,7 @@ AddEventHandler(
                     TriggerClientEvent('aquiverPoker:playerPlayCards', -1, source, tableId)
                     removeChips(source, bettedAmount)
                 else
-                    TriggerClientEvent('QBCore:Notify', source, _U('not_enough_chips_toplay'), 'error')
+                    TriggerClientEvent('ox_lib:Notify', source, _U('not_enough_chips_toplay'), 'error')
                 end
             end
         end
@@ -88,14 +85,14 @@ AddEventHandler(
             if ServerPokers[tableId] ~= nil then
                 if ServerPokers[tableId].PairPlusBets[source] == nil then
                     if getPlayerChips(source) < betAmount then
-                        TriggerClientEvent('QBCore:Notify', source, _U('not_enough_chips'), 'error')
+                        TriggerClientEvent('ox_lib:Notify', source, _U('not_enough_chips'), 'error')
                         return
                     end
 
                     -- checking if he is able to bet the pair plus without lowering the bets < 0
                     local currentAnteBetAmount = getPlayerBetAmount(source, tableId)
                     if getPlayerChips(source) < (currentAnteBetAmount + betAmount) then
-                        TriggerClientEvent('QBCore:Notify', source, _U('not_enough_chips_next'), 'error')
+                        TriggerClientEvent('ox_lib:Notify', source, _U('not_enough_chips_next'), 'error')
                         return
                     end
 
@@ -107,7 +104,7 @@ AddEventHandler(
                         removeChips(source, betAmount)
                     end
                 else
-                    TriggerClientEvent('QBCore:Notify', source, _U('already_betted'), 'error')
+                    TriggerClientEvent('ox_lib:Notify', source, _U('already_betted'), 'error')
                 end
             end
         end
@@ -123,14 +120,14 @@ AddEventHandler(
             if ServerPokers[tableId] ~= nil then
                 if ServerPokers[tableId].PlayerBets[source] == nil then
                     if getPlayerChips(source) < betAmount then
-                        TriggerClientEvent('QBCore:Notify', source, _U('not_enough_chips'), 'error')
+                        TriggerClientEvent('ox_lib:Notify', source, _U('not_enough_chips'), 'error')
 
                         return
                     end
 
                     -- check the doubled value of the bet for the play deny
                     if getPlayerChips(source) < betAmount * 2 then
-                        TriggerClientEvent('QBCore:Notify', source, _U('not_enough_chips_third'), 'error')
+                        TriggerClientEvent('ox_lib:Notify', source, _U('not_enough_chips_third'), 'error')
                         return
                     end
 
@@ -165,7 +162,7 @@ AddEventHandler(
                         TriggerClientEvent('aquiverPoker:updateCards', -1, tableId, ServerPokers[tableId].Cards)
                     end
                 else
-                    TriggerClientEvent('QBCore:Notify', source, _U('already_betted'), 'error')
+                    TriggerClientEvent('ox_lib:Notify', source, _U('already_betted'), 'error')
                 end
             end
         end
@@ -326,7 +323,7 @@ function playerPairPlusWon(targetSrc, tableId, pairMultiplier)
         if Player then
             local plusChips = math.floor(betAmount * pairMultiplier)
             if plusChips > 0 then
-                TriggerClientEvent('QBCore:Notify', targetSrc, _('pair_won', plusChips, pairMultiplier), 'error')
+                TriggerClientEvent('ox_lib:Notify', targetSrc, _('pair_won', plusChips, pairMultiplier), 'error')
                 giveChips(targetSrc, plusChips)
             end
         end
@@ -346,9 +343,9 @@ function playerWon(targetSrc, tableId, handValue)
             local AnteMultiplier = Config.GetAnteMultiplier(handValue)
             if AnteMultiplier > 0 then
                 plusChips = math.floor(plusChips + (AnteMultiplier * betAmount))
-                TriggerClientEvent('QBCore:Notify', targetSrc, _('player_won_ante', plusChips, AnteMultiplier), 'error')
+                TriggerClientEvent('ox_lib:Notify', targetSrc, _('player_won_ante', plusChips, AnteMultiplier), 'error')
             else
-                TriggerClientEvent('QBCore:Notify', targetSrc, _('player_won', plusChips), 'error')
+                TriggerClientEvent('ox_lib:Notify', targetSrc, _('player_won', plusChips), 'error')
             end
 
             giveChips(targetSrc, plusChips)
@@ -369,9 +366,9 @@ function playerDraw(targetSrc, tableId, handValue)
             local AnteMultiplier = Config.GetAnteMultiplier(handValue)
             if AnteMultiplier > 0 then
                 plusChips = math.floor(plusChips + ((betAmount / 2) * AnteMultiplier))
-                TriggerClientEvent('QBCore:Notify', targetSrc, _('dealer_not_qual_ante', plusChips, AnteMultiplier), 'error')
+                TriggerClientEvent('ox_lib:Notify', targetSrc, _('dealer_not_qual_ante', plusChips, AnteMultiplier), 'error')
             else
-                TriggerClientEvent('QBCore:Notify', targetSrc, _('dealer_not_qual', plusChips), 'error')
+                TriggerClientEvent('ox_lib:Notify', targetSrc, _('dealer_not_qual', plusChips), 'error')
             end
         end
 
@@ -385,7 +382,7 @@ function playerLost(targetSrc, tableId, handValue)
     if betAmount > 0 then
         local Player = exports.qbx_core:GetPlayer(targetSrc)
         if Player then
-            TriggerClientEvent('QBCore:Notify', targetSrc, _U('lose'), 'error')
+            TriggerClientEvent('ox_lib:Notify', targetSrc, _U('lose'), 'error')
         end
         TriggerClientEvent('aquiverPoker:playerLost', targetSrc, tableId)
     end
@@ -436,33 +433,32 @@ function getTablePlayersCount(tableId)
     return playersCount
 end
 
-QBCore.Functions.CreateCallback(
-    'aquiverPoker:sitDown',
-    function(source, cb, tableId, chairId)
-        if ServerPokers[tableId] == nil then
-            ServerPokers[tableId] = {
-                ChairsUsed = {}, -- chairs used, for disable sitting
-                PlayerBets = {}, -- player bets ofc.
-                Active = false,
-                Cards = {}, -- player / dealer cards, etc.
-                UsedCards = {}, -- which card was used, so we can not pick the same
-                PlayersFolded = {}, -- following who folded their cards
-                PairPlusBets = {},
-                Stage = 0, -- following the stages
-                TimeLeft = nil
-            }
-        end
-
-        if ServerPokers[tableId].ChairsUsed[chairId] == nil then
-            ServerPokers[tableId].ChairsUsed[chairId] = source
-            Config.DebugMsg('player sit down')
-            updatePlayerChips(source)
-            cb(true)
-        else
-            cb(false)
-        end
+-- FIX: Swapped out legacy framework callback wrapper for lib.callback.register
+lib.callback.register('aquiverPoker:sitDown', function(source, tableId, chairId)
+    if ServerPokers[tableId] == nil then
+        ServerPokers[tableId] = {
+            ChairsUsed = {},
+            PlayerBets = {},
+            Active = false,
+            Cards = {},
+            UsedCards = {},
+            PlayersFolded = {},
+            PairPlusBets = {},
+            Stage = 0,
+            TimeLeft = nil
+        }
     end
-)
+
+    if ServerPokers[tableId].ChairsUsed[chairId] == nil then
+        ServerPokers[tableId].ChairsUsed[chairId] = source
+        Config.DebugMsg('player sit down')
+        updatePlayerChips(source)
+        return true -- Returns evaluation directly to client layer instantly
+    else
+        return false
+    end
+end)
+
 
 AddEventHandler(
     'playerDropped',
