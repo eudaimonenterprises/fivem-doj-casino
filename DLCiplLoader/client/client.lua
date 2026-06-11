@@ -472,3 +472,19 @@ while true do
 
 end
 end)
+
+-- Force Text-Override via Sprite 679
+CreateThread(function()
+    local casinoCoords = vec3(935.31, 46.92, 80.9) 
+    local casinoBlip = AddBlipForCoord(casinoCoords.x, casinoCoords.y, casinoCoords.z)
+    
+    SetBlipSprite(casinoBlip, 679)       -- Uses the proper override-friendly Casino Sprite
+    SetBlipDisplay(casinoBlip, 4)        -- Shows on both main map and mini-map
+    SetBlipScale(casinoBlip, 0.8)        -- Icon scale size
+    SetBlipColor(casinoBlip, 0)          -- White/Default theme
+    SetBlipAsShortRange(casinoBlip, true)-- Prevents mini-map border crowding
+
+    BeginTextCommandSetBlipName("STRING")
+    AddTextComponentString("The Diamond Casino & Resort") 
+    EndTextCommandSetBlipName(casinoBlip)
+end)
