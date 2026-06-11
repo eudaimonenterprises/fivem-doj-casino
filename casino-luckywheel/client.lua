@@ -122,7 +122,8 @@ RegisterNetEvent('doj:client:winCar', function(vehicle, plate, vehicleId)
     -- TriggerServerEvent('qbx_vehiclekeys:server:addKey', plate) -- Example QBox fix
 end)
 
-exports.ox_target:addModel(`vw_prop_vw_luckywheel_02a`, {
+-- Clean, optimized lucky wheel interaction targeting only the spinning face
+exports.ox_target:addModel({ `vw_prop_vw_luckywheel_01a` }, {
     {
         name = 'casino_lucky_wheel_trigger',
         event = 'doj:casinoLuckyWheel',
