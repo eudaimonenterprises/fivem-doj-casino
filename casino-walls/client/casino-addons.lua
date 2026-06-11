@@ -38,11 +38,10 @@ RegisterNetEvent("doj:casinoMembershipMenu", function()
         options = {
             {
                 title = 'Standard Membership',
-                description = hasMemberCard and 'You already possess an active membership card.' or 'Purchase a standard casino gaming floor access card for $' .. Config.Casino.MemberCost,
+                description = (hasMemberCard or hasVipCard) and 'You already possess an active membership tier.' or 'Purchase a standard casino gaming floor access card for $' .. Config.Casino.MemberCost,
                 icon = 'id-card',
-                disabled = hasMemberCard,
+                disabled = (hasMemberCard or hasVipCard), -- Automatically disables if you are VIP!
                 onSelect = function()
-                    -- Inline confirm dialog bypasses the old slider clunkiness
                     local confirm = lib.alertDialog({
                         header = 'Purchase Membership?',
                         content = 'Would you like to buy a Standard Casino Membership for $' .. Config.Casino.MemberCost .. '?',
@@ -60,11 +59,15 @@ RegisterNetEvent("doj:casinoMembershipMenu", function()
                 onSelect = function()
                     local confirm = lib.alertDialog({
                         header = 'Purchase VIP Access?',
-                        content = 'Would you like to upgrade to a V.I.P Membership for $' .. Config.Casino.VipCost .. '?',
+                        content = 'Would you like to upgrade to a V.I.P Membership for $' .. Config.Casino.VipCost .. '? (Automatically includes floor access privileges)',
                         centered = true,
                         cancel = true
                     })
-                    if confirm == 'confirm' then TriggerServerEvent('doj:server:purchaseVIPMembership') end
+                    if confirm == 'confirm' then 
+                        TriggerServerEvent('doj:server:purchaseVIPMembership')
+                        -- FORCE SERVER EXPORT TO MINT BOTH ITEMS SIMULTANEOUSLY
+                        TriggerServerEvent('doj:server:purchaseMembership') 
+                    end
                 end
             }
         }
